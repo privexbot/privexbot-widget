@@ -182,6 +182,35 @@ class LeadForm {
         ? this.config.allow_skip
         : this.config.allowSkip !== false;
 
+    // Privacy notice — always shown, independent of `require_consent`, so the
+    // visitor is told what happens to their details at the point of collection.
+    // Never phrase this as "never shared with third parties": the submission is
+    // stored and enriched with approximate location.
+    const DEFAULT_PRIVACY_URL = 'https://privexbot.com/privacy';
+    // Only http(s) URLs are allowed through, and quotes/angle brackets are
+    // escaped, so a malformed or hostile config value cannot break out of the
+    // href attribute or smuggle in a `javascript:` scheme.
+    const safePrivacyUrl = (() => {
+      const raw = this.config.privacyUrl;
+      if (typeof raw !== 'string' || !raw) return DEFAULT_PRIVACY_URL;
+      try {
+        const parsed = new URL(raw, window.location.href);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          return DEFAULT_PRIVACY_URL;
+        }
+        return parsed.href.replace(/["'<>]/g, encodeURIComponent);
+      } catch (e) {
+        return DEFAULT_PRIVACY_URL;
+      }
+    })();
+
+    const privacyHtml = `
+      <p class="privexbot-form-privacy">
+        We store your details and approximate location so we can reply.
+        <a href="${safePrivacyUrl}" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+      </p>
+    `;
+
     container.innerHTML = `
       <h3>${this.config.title || 'Get in Touch'}</h3>
       <p>${this.config.description || "We'd love to hear from you! Please share your details."}</p>
@@ -199,6 +228,7 @@ class LeadForm {
             : ''
         }
       </form>
+      ${privacyHtml}
     `;
 
     this.element = container;

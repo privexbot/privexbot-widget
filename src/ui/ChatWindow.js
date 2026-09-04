@@ -61,6 +61,17 @@ class ChatWindow {
     this.messageList = new MessageList((messageId, rating) =>
       this.handleFeedback(messageId, rating)
     );
+    // AI disclosure — EU AI Act Article 50 requires a person to be told they
+    // are interacting with an AI system, perceivable at the very beginning of
+    // the interaction. Appended BEFORE the message list so it sits above the
+    // greeting and is present before any message can be sent. Not configurable:
+    // it is a legal obligation, not a branding choice.
+    const disclosure = document.createElement('p');
+    disclosure.className = 'privexbot-ai-disclosure';
+    disclosure.setAttribute('role', 'note');
+    disclosure.textContent = "You're chatting with an AI assistant.";
+    contentContainer.appendChild(disclosure);
+
     contentContainer.appendChild(this.messageList.render());
 
     // Show greeting message (no message_id for greeting - it's not stored in DB)
@@ -98,7 +109,7 @@ class ChatWindow {
         </div>
         <div class="privexbot-header-text">
           <h3>${this.config.botName || 'Support Assistant'}</h3>
-          <p>Online • Typically replies instantly</p>
+          <p>AI assistant • Replies instantly</p>
         </div>
       </div>
       <button class="privexbot-close-btn" id="privexbot-close">
